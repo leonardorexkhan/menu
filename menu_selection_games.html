@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍽️ 메뉴 선정 게임</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.8rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            letter-spacing: -1px;
+        }
+
+        .menu-display {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .menu-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 25px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .menu-tag:hover {
+            transform: translateY(-2px);
+        }
+
+        .games-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+        }
+
+        .game-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-area {
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-display {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 500;
+            text-align: center;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            box-shadow: 0 5px 20px rgba(240, 147, 251, 0.3);
+        }
+
+        /* 사다리타기 스타일 */
+        .ladder-container {
+            position: relative;
+            width: 280px;
+            height: 200px;
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .ladder-path {
+            position: absolute;
+            width: 4px;
+            height: 100%;
+            background: #667eea;
+            top: 0;
+        }
+
+        .ladder-rung {
+            position: absolute;
+            height: 4px;
+            background: #764ba2;
+        }
+
+        .ladder-ball {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ff6b6b, #ee5a5a);
+            border-radius: 50%;
+            top: -10px;
+            left: -8px;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 10px rgba(238, 90, 90, 0.4);
+            z-index: 10;
+        }
+
+        /* 룰렛 스타일 */
+        .roulette-container {
+            position: relative;
+        }
+
+        .roulette-wheel {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            position: relative;
+            transition: transform 4s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 8px solid white;
+        }
+
+        .roulette-sector {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            transform-origin: right bottom;
+            clip-path: polygon(0 0, 100% 0, 0 100%);
+            border-radius: 0 0 100% 0;
+        }
+
+        .roulette-pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 25px solid #ff6b6b;
+            z-index: 10;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
+        }
+
+        .roulette-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 50%;
+            z-index: 5;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 뽑기 스타일 */
+        .gacha-machine {
+            width: 180px;
+            height: 240px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 25px;
+            position: relative;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .gacha-globe {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.2));
+            border-radius: 50%;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .gacha-capsule {
+            width: 40px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            border-radius: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 5px 15px rgba(238, 90, 90, 0.4);
+        }
+
+        .gacha-handle {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .gacha-handle:hover {
+            transform: scale(1.1);
+        }
+
+        .gacha-slot {
+            width: 50px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* 주사위 스타일 */
+        .dice-container {
+            perspective: 1000px;
+        }
+
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 15px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease-in-out;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 2px solid #667eea;
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 76px;
+            height: 76px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .dice.rolling {
+            animation: diceRoll 0.6s ease-in-out;
+        }
+
+        @keyframes diceRoll {
+            0% { transform: rotateX(0) rotateY(0); }
+            25% { transform: rotateX(90deg) rotateY(90deg); }
+            50% { transform: rotateX(180deg) rotateY(180deg); }
+            75% { transform: rotateX(270deg) rotateY(270deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+
+        /* 슬롯머신 스타일 */
+        .slot-machine {
+            background: linear-gradient(135deg, #333, #555);
+            border-radius: 20px;
+            padding: 30px 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .slot-reels {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .slot-reel {
+            width: 70px;
+            height: 90px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .slot-strip {
+            position: absolute;
+            width: 100%;
+            transition: transform 2.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .slot-symbol {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            border-bottom: 1px solid #eee;
+        }
+
+        .slot-lever {
+            width: 60px;
+            height: 100px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border-radius: 30px;
+            position: relative;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .slot-lever:hover {
+            transform: translateY(-5px);
+        }
+
+        .slot-lever::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, #ff6b6b, #ee5a5a);
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(238, 90, 90, 0.4);
+        }
+
+        /* 공통 애니메이션 */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        /* 로딩 상태 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .games-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .menu-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ 메뉴 선정 게임</h1>
+        
+        <div class="menu-display">
+            <h3 style="color: #667eea; font-size: 1.2rem; font-weight: 600; margin-bottom: 10px;">📝 오늘의 메뉴 후보</h3>
+            <div class="menu-grid">
+                <div class="menu-tag">닭칼국수</div>
+                <div class="menu-tag">담소</div>
+                <div class="menu-tag">토김</div>
+                <div class="menu-tag">마라</div>
+                <div class="menu-tag">샐러드</div>
+                <div class="menu-tag">햄버거</div>
+                <div class="menu-tag">이팔복돈까스</div>
+                <div class="menu-tag">정육식당</div>
+                <div class="menu-tag">쌈밥제육</div>
+                <div class="menu-tag">추어탕</div>
+            </div>
+        </div>
+
+        <div class="games-container">
+            <!-- 사다리타기 -->
+            <div class="game-card">
+                <div class="game-title">🪜 사다리타기</div>
+                <div class="game-area">
+                    <div class="ladder-container" id="ladder-container">
+                        <div class="ladder-ball" id="ladder-ball"></div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="playLadder()" id="ladder-btn">사다리 타기</button>
+                <div class="result-display" id="ladder-result">시작점을 선택해 사다리를 타보세요!</div>
+            </div>
+
+            <!-- 룰렛 -->
+            <div class="game-card">
+                <div class="game-title">🎡 룰렛</div>
+                <div class="game-area">
+                    <div class="roulette-container">
+                        <div class="roulette-pointer"></div>
+                        <div class="roulette-wheel" id="roulette-wheel">
+                            <div class="roulette-center"></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="playRoulette()" id="roulette-btn">룰렛 돌리기</button>
+                <div class="result-display" id="roulette-result">룰렛을 돌려 운명의 메뉴를 찾아보세요!</div>
+            </div>
+
+            <!-- 뽑기 -->
+            <div class="game-card">
+                <div class="game-title">🎲 캡슐 뽑기</div>
+                <div class="game-area">
+                    <div class="gacha-machine">
+                        <div class="gacha-globe">
+                            <div class="gacha-capsule" id="gacha-capsule"></div>
+                        </div>
+                        <div class="gacha-slot"></div>
+                        <div class="gacha-handle" onclick="playGacha()" id="gacha-handle"></div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="playGacha()" id="gacha-btn">캡슐 뽑기</button>
+                <div class="result-display" id="gacha-result">손잡이를 돌려 캡슐을 뽑아보세요!</div>
+            </div>
+
+            <!-- 주사위 -->
+            <div class="game-card">
+                <div class="game-title">🎲 주사위</div>
+                <div class="game-area">
+                    <div class="dice-container">
+                        <div class="dice" id="dice">
+                            <div class="dice-face" id="dice-face">🎲</div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="playDice()" id="dice-btn">주사위 굴리기</button>
+                <div class="result-display" id="dice-result">주사위를 굴려 메뉴를 정해보세요!</div>
+            </div>
+
+            <!-- 슬롯머신 -->
+            <div class="game-card">
+                <div class="game-title">🎰 슬롯머신</div>
+                <div class="game-area">
+                    <div class="slot-machine">
+                        <div class="slot-reels">
+                            <div class="slot-reel">
+                                <div class="slot-strip" id="slot-strip-1"></div>
+                            </div>
+                            <div class="slot-reel">
+                                <div class="slot-strip" id="slot-strip-2"></div>
+                            </div>
+                            <div class="slot-reel">
+                                <div class="slot-strip" id="slot-strip-3"></div>
+                            </div>
+                        </div>
+                        <div class="slot-lever" onclick="playSlot()" id="slot-lever"></div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="playSlot()" id="slot-btn">잭팟!</button>
+                <div class="result-display" id="slot-result">레버를 당겨 잭팟을 노려보세요!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menus = [
+            '닭칼국수', '담소', '토김', '마라', '샐러드', 
+            '햄버거', '이팔복돈까스', '정육식당', '쌈밥제육', '추어탕'
+        ];
+
+        const menuEmojis = ['🍜', '🥘', '🥟', '🌶️', '🥗', '🍔', '🍖', '🥩', '🍛', '🐟'];
+
+        // 사다리타기
+        function initLadder() {
+            const container = document.getElementById('ladder-container');
+            container.innerHTML = '<div class="ladder-ball" id="ladder-ball"></div>';
+            
+            // 세로 경로 생성
+            for (let i = 0; i < 4; i++) {
+                const path = document.createElement('div');
+                path.className = 'ladder-path';
+                path.style.left = `${20 + i * 20}%`;
+                container.appendChild(path);
+            }
+            
+            // 가로 연결선 생성
+            for (let i = 1; i < 8; i++) {
+                if (Math.random() > 0.4) {
+                    const rung = document.createElement('div');
+                    rung.className = 'ladder-rung';
+                    rung.style.top = `${i * 12}%`;
+                    const startCol = Math.floor(Math.random() * 3);
+                    rung.style.left = `${20 + startCol * 20}%`;
+                    rung.style.width = '20%';
+                    container.appendChild(rung);
+                }
+            }
+        }
+
+        function playLadder() {
+            const btn = document.getElementById('ladder-btn');
+            const result = document.getElementById('ladder-result');
+            const ball = document.getElementById('ladder-ball');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div> 이동중...';
+            result.textContent = '공이 사다리를 타고 내려가고 있어요...';
+            
+            // 시작 위치 설정
+            const startPosition = Math.floor(Math.random() * 4);
+            ball.style.left = `${12 + startPosition * 20}%`;
+            ball.style.top = '0%';
+            ball.style.opacity = '1';
+            
+            // 사다리 타기 애니메이션
+            setTimeout(() => {
+                ball.style.top = '90%';
+                ball.style.left = `${12 + Math.floor(Math.random() * 4) * 20}%`;
+            }, 500);
+            
+            setTimeout(() => {
+                const selectedMenu = menus[Math.floor(Math.random() * menus.length)];
+                result.innerHTML = `🎉 <strong>${selectedMenu}</strong>에서 식사하세요!`;
+                btn.disabled = false;
+                btn.textContent = '다시 하기';
+            }, 2000);
+        }
+
+        // 룰렛
+        function initRoulette() {
+            const wheel = document.getElementById('roulette-wheel');
+            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dda0dd', '#98d8c8', '#f7dc6f', '#bb8fce', '#85c1e9'];
+            
+            for (let i = 0; i < 10; i++) {
+                const sector = document.createElement('div');
+                sector.className = 'roulette-sector';
+                sector.style.background = colors[i];
+                sector.style.transform = `rotate(${i * 36}deg)`;
+                sector.style.zIndex = 10 - i;
+                wheel.appendChild(sector);
+            }
+            
+            const center = document.createElement('div');
+            center.className = 'roulette-center';
+            wheel.appendChild(center);
+        }
+
+        function playRoulette() {
+            const btn = document.getElementById('roulette-btn');
+            const result = document.getElementById('roulette-result');
+            const wheel = document.getElementById('roulette-wheel');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div> 회전중...';
+            result.textContent = '룰렛이 힘차게 돌고 있어요...';
+            
+            const rotations = Math.floor(Math.random() * 5) + 5; // 5-9바퀴
+            const finalAngle = Math.floor(Math.random() * 360);
+            const totalRotation = rotations * 360 + finalAngle;
+            
+            wheel.style.transform = `rotate(${totalRotation}deg)`;
+            
+            setTimeout(() => {
+                const selectedMenu = menus[Math.floor(finalAngle / 36)];
+                result.innerHTML = `🎡 <strong>${selectedMenu}</strong>가 선택되었어요!`;
+                btn.disabled = false;
+                btn.textContent = '다시 돌리기';
+            }, 4000);
+        }
+
+        // 뽑기
+        function playGacha() {
+            const btn = document.getElementById('gacha-btn');
+            const result = document.getElementById('gacha-result');
+            const capsule = document.getElementById('gacha-capsule');
+            const handle = document.getElementById('gacha-handle');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div> 뽑는중...';
+            result.textContent = '캡슐이 나오고 있어요...';
+            
+            // 손잡이 회전
+            handle.style.transform = 'rotate(360deg)';
+            
+            setTimeout(() => {
+                // 캡슐 떨어짐
+                capsule.style.transform = 'translate(-50%, 200px) rotate(720deg)';
+            }, 800);
+            
+            setTimeout(() => {
+                const selectedMenu = menus[Math.floor(Math.random() * menus.length)];
+                const emoji = menuEmojis[menus.indexOf(selectedMenu)];
+                result.innerHTML = `🎁 <strong>${selectedMenu}</strong> ${emoji}`;
+                capsule.style.transform = 'translate(-50%, -50%)';
+                handle.style.transform = 'rotate(0deg)';
+                btn.disabled = false;
+                btn.textContent = '다시 뽑기';
+            }, 2500);
+        }
+
+        // 주사위
+        function playDice() {
+            const btn = document.getElementById('dice-btn');
+            const result = document.getElementById('dice-result');
+            const dice = document.getElementById('dice');
+            const face = document.getElementById('dice-face');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div> 굴리는중...';
+            result.textContent = '주사위가 굴러가고 있어요...';
+            
+            dice.classList.add('rolling');
+            
+            let rollCount = 0;
+            const rollInterval = setInterval(() => {
+                face.textContent = Math.floor(Math.random() * 6) + 1;
+                rollCount++;
+                
+                if (rollCount >= 15) {
+                    clearInterval(rollInterval);
+                    dice.classList.remove('rolling');
+                    
+                    const finalNumber = Math.floor(Math.random() * 6) + 1;
+                    const selectedMenu = menus[Math.floor(Math.random() * menus.length)];
+                    
+                    face.textContent = finalNumber;
+                    result.innerHTML = `🎲 ${finalNumber}이 나왔어요! <strong>${selectedMenu}</strong>`;
+                    btn.disabled = false;
+                    btn.textContent = '다시 굴리기';
+                }
+            }, 100);
+        }
+
+        // 슬롯머신
+        function initSlot() {
+            for (let i = 1; i <= 3; i++) {
+                const strip = document.getElementById(`slot-strip-${i}`);
+                strip.innerHTML = '';
+                
+                // 각 릴에 심볼 생성 (여러 번 반복)
+                for (let j = 0; j < 20; j++) {
+                    const symbol = document.createElement('div');
+                    symbol.className = 'slot-symbol';
+                    symbol.textContent = menuEmojis[j % menuEmojis.length];
+                    strip.appendChild(symbol);
+                }
+            }
+        }
+
+        function playSlot() {
+            const btn = document.getElementById('slot-btn');
+            const result = document.getElementById('slot-result');
+            const lever = document.getElementById('slot-lever');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading"></div> 회전중...';
+            result.textContent = '슬롯이 돌아가고 있어요...';
+            
+            // 레버 애니메이션
+            lever.style.transform = 'translateY(20px) rotate(15deg)';
+            
+            setTimeout(() => {
+                lever.style.transform = 'translateY(0) rotate(0deg)';
+            }, 200);
+            
+            // 각 릴을 다른 타이밍으로 정지
+            for (let i = 1; i <= 3; i++) {
+                const strip = document.getElementById(`slot-strip-${i}`);
+                const finalPosition = -(Math.floor(Math.random() * 10) + 5) * 90; // 랜덤 정지 위치
+                
+                setTimeout(() => {
+                    strip.style.transform = `translateY(${finalPosition}px)`;
+                }, 500 + i * 800); // 순차적으로 정지
+            }
+            
+            setTimeout(() => {
+                const selectedMenu = menus[Math.floor(Math.random() * menus.length)];
+                const emoji = menuEmojis[menus.indexOf(selectedMenu)];
+                
+                // 잭팟 효과
+                if (Math.random() > 0.7) {
+                    result.innerHTML = `🎰 JACKPOT! <strong>${selectedMenu}</strong> ${emoji} 🎰`;
+                    result.style.background = 'linear-gradient(135deg, #ffd700, #ffed4e)';
+                    result.style.color = '#333';
+                } else {
+                    result.innerHTML = `🎰 <strong>${selectedMenu}</strong> ${emoji}`;
+                    result.style.background = 'linear-gradient(135deg, #f093fb, #f5576c)';
+                    result.style.color = 'white';
+                }
+                
+                btn.disabled = false;
+                btn.textContent = '다시 도전!';
+            }, 4000);
+        }
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', function() {
+            initLadder();
+            initRoulette();
+            initSlot();
+            
+            // 카드 등장 애니메이션
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 200 + index * 150);
+            });
+        });
+
+        // 추가 인터랙션
+        document.addEventListener('DOMContentLoaded', function() {
+            // 메뉴 태그 호버 효과
+            const menuTags = document.querySelectorAll('.menu-tag');
+            menuTags.forEach(tag => {
+                tag.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px) scale(1.05)';
+                });
+                
+                tag.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+            
+            // 게임 카드 호버 효과 강화
+            const gameCards = document.querySelectorAll('.game-card');
+            gameCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px)';
+                    this.style.boxShadow = '0 30px 60px rgba(0,0,0,0.25)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
+                });
+            });
+        });
+
+        // 버튼 클릭 이펙트
+        function addClickEffect(element) {
+            element.addEventListener('click', function(e) {
+                const ripple = document.createElement('div');
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.6)';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.animation = 'ripple 0.6s linear';
+                ripple.style.left = (e.clientX - e.target.getBoundingClientRect().left) + 'px';
+                ripple.style.top = (e.clientY - e.target.getBoundingClientRect().top) + 'px';
+                ripple.style.width = ripple.style.height = '20px';
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        }
+
+        // 모든 버튼에 클릭 이펙트 적용
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.btn-primary');
+            buttons.forEach(button => {
+                addClickEffect(button);
+            });
+        });
+
+        // CSS 애니메이션 추가
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes glow {
+                0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+                50% { box-shadow: 0 0 40px rgba(102, 126, 234, 0.8), 0 0 60px rgba(102, 126, 234, 0.4); }
+            }
+            
+            .jackpot {
+                animation: glow 2s infinite;
+            }
+            
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+            
+            .shake {
+                animation: shake 0.5s ease-in-out;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 성과 시스템 (간단한 카운터)
+        let gameStats = {
+            ladder: 0,
+            roulette: 0,
+            gacha: 0,
+            dice: 0,
+            slot: 0
+        };
+
+        function updateStats(game) {
+            gameStats[game]++;
+            localStorage.setItem('menuGameStats', JSON.stringify(gameStats));
+        }
+
+        // 통계 로드
+        function loadStats() {
+            const saved = localStorage.getItem('menuGameStats');
+            if (saved) {
+                gameStats = JSON.parse(saved);
+            }
+        }
+
+        // 특수 효과
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'][Math.floor(Math.random() * 5)];
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`;
+                confetti.style.zIndex = '1000';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 5000);
+            }
+        }
+
+        // 컨페티 애니메이션 CSS
+        const confettiStyle = document.createElement('style');
+        confettiStyle.textContent = `
+            @keyframes confetti-fall {
+                to {
+                    transform: translateY(100vh) rotate(720deg);
+                }
+            }
+        `;
+        document.head.appendChild(confettiStyle);
+
+        // 잭팟 시 컨페티 효과 추가
+        function triggerJackpot(resultElement) {
+            resultElement.classList.add('jackpot');
+            createConfetti();
+            
+            setTimeout(() => {
+                resultElement.classList.remove('jackpot');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
